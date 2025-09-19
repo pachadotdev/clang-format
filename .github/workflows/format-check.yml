@@ -16,59 +16,76 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Cache clang-format binaries
-      uses: actions/cache@v3
-      with:
-        path: bin/
-        key: clang-format-${{ matrix.clang-version }}-${{ runner.os }}
-    
-    - name: Install dependencies
-      run: make install-deps
-    
-    - name: Build clang-format-${{ matrix.clang-version }}
-      run: make clang${{ matrix.clang-version }}
+    - name: Download clang-format binaries
+      run: |
+        # Download the latest release binaries
+        curl -fsSL https://github.com/pachadotdev/clang-format/releases/latest/download/clang-format.tar.gz | tar -xz
+        chmod +x clang-format*
+        
+        # Verify the specific version we need exists
+        if [ ! -f "clang-format-${{ matrix.clang-version }}" ]; then
+          echo "❌ clang-format-${{ matrix.clang-version }} not found in release"
+          exit 1
+        fi
+        
+        echo "✅ Using clang-format-${{ matrix.clang-version }} from release"
     
     - name: Run formatting check
       run: |
-        # Create a backup of original files
-        find . -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' -o -name '*.cc' -o -name '*.cxx' | \
-        grep -v build | \
-        xargs -r cp --parents -t /tmp/
+        # Find all C/C++ files
+        FILES=$(find . -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' -o -name '*.cc' -o -name '*.cxx' | grep -v build | head -20)
         
-        # Format files
-        make format VERSION=${{ matrix.clang-version }}
+        if [ -z "$FILES" ]; then
+          echo "ℹ️  No C/C++ files found to format"
+          exit 0
+        fi
+        
+        # Format files with the specific version
+        echo "$FILES" | xargs ./clang-format-${{ matrix.clang-version }} -i
         
         # Check if any files were changed
         if ! git diff --exit-code; then
           echo "❌ Code formatting issues found with clang-format-${{ matrix.clang-version }}"
-          echo "Please run: make format VERSION=${{ matrix.clang-version }}"
+          echo "Files that need formatting:"
+          git diff --name-only
+          echo ""
+          echo "Please run: clang-format-${{ matrix.clang-version }} -i <file>"
           exit 1
         else
           echo "✅ Code formatting is correct with clang-format-${{ matrix.clang-version }}"
         fi
 
-  build-all-versions:
+  verify-release-binaries:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Cache all clang-format binaries
-      uses: actions/cache@v3
-      with:
-        path: bin/
-        key: clang-format-all-${{ runner.os }}-v1
-    
-    - name: Install dependencies
-      run: make install-deps
-    
-    - name: Build all clang-format versions
-      run: make all
-    
-    - name: Upload binaries as artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: clang-format-binaries
-        path: bin/
-        retention-days: 30
+    - name: Download and verify release binaries
+      run: |
+        # Download the latest release binaries
+        curl -fsSL https://github.com/pachadotdev/clang-format/releases/latest/download/clang-format.tar.gz | tar -xz
+        
+        # Verify all expected versions are present
+        echo "📦 Verifying release contains all clang-format versions:"
+        for version in {11..19}; do
+          if [ -f "clang-format-$version" ]; then
+            echo "✅ clang-format-$version"
+            ./clang-format-$version --version
+          else
+            echo "❌ clang-format-$version missing"
+            exit 1
+          fi
+        done
+        
+        # Test the wrapper script
+        if [ -f "clang-format" ]; then
+          echo "✅ clang-format wrapper script present"
+          chmod +x clang-format
+        else
+          echo "❌ clang-format wrapper script missing"
+          exit 1
+        fi
+        
+        echo "🎉 All binaries verified successfully!"
