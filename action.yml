@@ -6,10 +6,6 @@ branding:
   icon: 'code'
   color: 'blue'
 
-branding:
-  icon: 'code'
-  color: 'blue'
-
 inputs:
   version:
     description: 'Clang-format version to use (11-19)'
