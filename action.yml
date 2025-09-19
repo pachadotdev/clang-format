@@ -58,7 +58,7 @@ runs:
         mkdir -p /tmp/clang-format-bin
         
         # Download clang-format binaries
-        RELEASE_URL="https://github.com/pachadotdev/clang-format/releases/download/v0.1/clang-format.tar.gz"
+        RELEASE_URL="https://github.com/pachadotdev/clang-format/releases/latest/download/clang-format.tar.gz"
         echo "📥 Downloading clang-format binaries..."
         
         cd /tmp
