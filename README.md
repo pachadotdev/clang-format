@@ -1,5 +1,7 @@
 # Clang-format
 
+If this project is useful to you, please consider supporting it by buying me a coffee: [![BuyMeACoffee](https://raw.githubusercontent.com/pachadotdev/buymeacoffee-badges/main/bmc-yellow.svg)](https://www.buymeacoffee.com/pacha)
+
 ## About
 
 A fast, portable solution for building and using multiple versions of clang-format across different Linux distributions. Docker-based approaches are equivalent but much slower and resource-intensive.
@@ -17,7 +19,8 @@ A fast, portable solution for building and using multiple versions of clang-form
 
 ### Use the Marketplace extension for GitHub Actions
 
-Use the [GitHub Action](https://github.com/marketplace/actions/clang-format-multi-version) for automatic code formatting in your workflows:
+Use the [GitHub Action](https://github.com/marketplace?type=actions) for automatic code formatting in your workflows.
+Here is an example repository with the minimal setup to get you started: [pachadotdev/clang-format-example](https://github.com/pachadotdev/clang-format-example).
 
 ```yaml
 name: Auto-format Code
