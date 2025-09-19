@@ -1,0 +1,54 @@
+name: Test Action
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-action:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Create test files
+        run: |
+          mkdir -p test
+          cat > test/example.cpp << 'EOF'
+          #include<iostream>
+          int main(){
+          std::cout<<"Hello World"<<std::endl;
+          return 0;
+          }
+          EOF
+          
+          cat > test/example.h << 'EOF'
+          #ifndef EXAMPLE_H
+          #define EXAMPLE_H
+          void hello_world();
+          #endif
+          EOF
+      
+      - name: Test with clang-format 18
+        uses: ./
+        with:
+          version: '18'
+          auto-commit: false
+          fail-on-diff: false
+      
+      - name: Verify formatting
+        run: |
+          echo "Contents after formatting:"
+          cat test/example.cpp
+          echo "---"
+          cat test/example.h
+      
+      - name: Test with different version
+        uses: ./
+        with:
+          version: '14'
+          paths: 'test/'
+          auto-commit: false
+          fail-on-diff: false

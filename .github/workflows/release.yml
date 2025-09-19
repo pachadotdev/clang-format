@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build clang-format binaries
+        run: |
+          # Install dependencies
+          make install-build-deps-and-gcc14
+          
+          # Build all versions
+          make all
+          
+          # Verify all binaries
+          make status
+      
+      - name: Create release archive
+        run: |
+          # Create archive with all binaries
+          mkdir -p release
+          cp bin/clang-format* release/
+          cp clang-format release/
+          
+          # Create tar.gz
+          cd release
+          tar -czf ../clang-format.tar.gz *
+          cd ..
+          
+          # Create checksums
+          sha256sum clang-format.tar.gz > clang-format.tar.gz.sha256
+      
+      - name: Create Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+          body: |
+            ## Clang-format Multi-version Release
+            
+            This release contains pre-built clang-format binaries for versions 11-19.
+            
+            ### What's included:
+            - `clang-format-11` through `clang-format-19` binaries
+            - `clang-format` wrapper script for easy usage
+            - Works on Linux x86_64 systems
+            
+            ### Installation:
+            ```bash
+            cd ~/Downloads
+            wget https://github.com/pachadotdev/clang-format/releases/download/${{ github.ref_name }}/clang-format.tar.gz
+            sudo tar -xzf clang-format.tar.gz -C /usr/local/bin
+            sudo chmod +x /usr/local/bin/clang-format*
+            ```
+            
+            ### Usage:
+            ```bash
+            clang-format example.cpp              # Format with default version (19)
+            clang-format 14 example.cpp           # Format with clang-format-14
+            clang-format                          # Format all C/C++ files in directory
+            ```
+            
+            ### GitHub Action:
+            ```yaml
+            - uses: pachadotdev/clang-format@${{ github.ref_name }}
+              with:
+                version: '18'
+                auto-commit: true
+            ```
+      
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./clang-format.tar.gz
+          asset_name: clang-format.tar.gz
+          asset_content_type: application/gzip
+      
+      - name: Upload Checksums
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./clang-format.tar.gz.sha256
+          asset_name: clang-format.tar.gz.sha256
+          asset_content_type: text/plain

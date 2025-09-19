@@ -15,21 +15,104 @@ A fast, portable solution for building and using multiple versions of clang-form
 
 ## Quick Start
 
-### Use the compiled binaries with GitHub Actions
+### Use the Marketplace extension for GitHub Actions
 
-Use the [Marketplace extension](https://github.com/marketplace?type=actions) for GitHub Actions. This approach will format and ammend your commits/PRs automatically.
+Use the [GitHub Action](https://github.com/marketplace/actions/clang-format-multi-version) for automatic code formatting in your workflows:
 
 ```yaml
+name: Auto-format Code
 
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - uses: pachadotdev/clang-format@v1
+        with:
+          version: '18'
+          auto-commit: true
+          commit-message: 'style: auto-format C++ code'
+```
+
+### Integration with R package workflows example
+
+```yaml
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  R-CMD-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Format C++ code first
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - uses: pachadotdev/clang-format@v1
+        with:
+          version: '18'
+          files: 'src/*.cpp src/*.h inst/include/*.h'
+          auto-commit: true
+          commit-message: 'style: format C++ code in R package'
+      
+      # Then continue with R package checks
+      - uses: r-lib/actions/setup-pandoc@v2
+      
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: 'release'
+          use-public-rspm: true
+      
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+      
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
 ```
 
 ### Use the compiled binaries on your system
 
+#### Quick Install (Recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pachadotdev/clang-format/main/install.sh | bash
+```
+
+#### Manual Install from Release
+
 Download the latest release from the [Releases](https://github.com/pachadotdev/clang-format/releases) page and extract the binaries to `/usr/local/bin` or any directory in your PATH.
 
 ```bash
-wget 
-COMPLETE AFTER PUSH
+# Check that /usr/local/bin is in your PATH
+echo $PATH | grep /usr/local/bin
+
+# Download and install
+cd ~/Downloads
+wget https://github.com/pachadotdev/clang-format/releases/latest/download/clang-format.tar.gz
+sudo tar -xzf clang-format.tar.gz -C /usr/local/bin
+sudo chmod +x /usr/local/bin/clang-format*
+
+# Examples
 
 clang-format example.cpp # defaults to clang-format-19, overwrites the file
 clang-format 11 example.cpp # uses clang-format-11, overwrites the file
@@ -47,7 +130,7 @@ The provided Makefile will automatically detect your Linux distribution and inst
 Here is the output of `make help`:
 
 ```bash
-make help                                                        ✔ 
+make help 
 Clang-format Multi-version Builder
 
 Available targets:

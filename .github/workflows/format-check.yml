@@ -1,0 +1,74 @@
+name: Code Formatting Check
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        clang-version: [11, 12, 13, 14, 15, 16, 17, 18]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Cache clang-format binaries
+      uses: actions/cache@v3
+      with:
+        path: bin/
+        key: clang-format-${{ matrix.clang-version }}-${{ runner.os }}
+    
+    - name: Install dependencies
+      run: make install-deps
+    
+    - name: Build clang-format-${{ matrix.clang-version }}
+      run: make clang${{ matrix.clang-version }}
+    
+    - name: Run formatting check
+      run: |
+        # Create a backup of original files
+        find . -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' -o -name '*.cc' -o -name '*.cxx' | \
+        grep -v build | \
+        xargs -r cp --parents -t /tmp/
+        
+        # Format files
+        make format VERSION=${{ matrix.clang-version }}
+        
+        # Check if any files were changed
+        if ! git diff --exit-code; then
+          echo "❌ Code formatting issues found with clang-format-${{ matrix.clang-version }}"
+          echo "Please run: make format VERSION=${{ matrix.clang-version }}"
+          exit 1
+        else
+          echo "✅ Code formatting is correct with clang-format-${{ matrix.clang-version }}"
+        fi
+
+  build-all-versions:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Cache all clang-format binaries
+      uses: actions/cache@v3
+      with:
+        path: bin/
+        key: clang-format-all-${{ runner.os }}-v1
+    
+    - name: Install dependencies
+      run: make install-deps
+    
+    - name: Build all clang-format versions
+      run: make all
+    
+    - name: Upload binaries as artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: clang-format-binaries
+        path: bin/
+        retention-days: 30
