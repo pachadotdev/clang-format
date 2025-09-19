@@ -8,11 +8,11 @@ class Example {
 
     void processData(const std::vector<int> &data) {
         for (auto item : data) {
-            if (item > m_value) {
-                std::cout << "Item " << item << " is greater than " << m_value << std::endl;
-            } else {
-                std::cout << "Item " << item << " is not greater" << std::endl;
-            }
+        if (item > m_value) {
+        std::cout << "Item " << item << " is greater than " << m_value << std::endl;
+        } else {
+        std::cout << "Item " << item << " is not greater" << std::endl;
+        }
         }
     }
 
