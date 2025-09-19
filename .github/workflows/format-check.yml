@@ -1,4 +1,4 @@
-name: Code Formatting Check
+name: Auto-format Code
 
 on:
   push:
@@ -7,14 +7,14 @@ on:
     branches: [ main, master, develop ]
 
 jobs:
-  format-check:
+  auto-format:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        clang-version: [11, 12, 13, 14, 15, 16, 17, 18]
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     
     - name: Download clang-format binaries
       run: |
@@ -22,37 +22,51 @@ jobs:
         curl -fsSL https://github.com/pachadotdev/clang-format/releases/latest/download/clang-format.tar.gz | tar -xz
         chmod +x clang-format*
         
-        # Verify the specific version we need exists
-        if [ ! -f "clang-format-${{ matrix.clang-version }}" ]; then
-          echo "❌ clang-format-${{ matrix.clang-version }} not found in release"
-          exit 1
-        fi
-        
-        echo "✅ Using clang-format-${{ matrix.clang-version }} from release"
+        echo "✅ Downloaded clang-format binaries from release"
     
-    - name: Run formatting check
+    - name: Auto-format and commit changes
       run: |
-        # Find all C/C++ files
-        FILES=$(find . -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' -o -name '*.cc' -o -name '*.cxx' | grep -v build | head -20)
+        # Find all C/C++ files (limit to 100 files to avoid overwhelming)
+        FILES=$(find . -name '*.cpp' -o -name '*.hpp' -o -name '*.h' -o -name '*.c' -o -name '*.cc' -o -name '*.cxx' | grep -v build | head -100)
         
         if [ -z "$FILES" ]; then
           echo "ℹ️  No C/C++ files found to format"
           exit 0
         fi
         
-        # Format files with the specific version
-        echo "$FILES" | xargs ./clang-format-${{ matrix.clang-version }} -i
+        echo "📝 Found $(echo "$FILES" | wc -l) C/C++ files to check"
+        
+        # Format files with clang-format-18 (default)
+        echo "$FILES" | xargs ./clang-format-18 -i
         
         # Check if any files were changed
         if ! git diff --exit-code; then
-          echo "❌ Code formatting issues found with clang-format-${{ matrix.clang-version }}"
-          echo "Files that need formatting:"
+          echo "🔧 Auto-formatting C++ code with clang-format-18"
+          echo "Files formatted:"
           git diff --name-only
-          echo ""
-          echo "Please run: clang-format-${{ matrix.clang-version }} -i <file>"
-          exit 1
+          
+          # Configure git for the commit
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add and commit the changes
+          git add .
+          
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # For PRs, create a new commit
+            git commit -m "style: auto-format C++ code with clang-format-18
+            
+            [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          else
+            # For direct pushes, amend the last commit
+            git commit --amend --no-edit
+            git push --force-with-lease origin ${{ github.ref_name }}
+          fi
+          
+          echo "✅ Code formatted and committed"
         else
-          echo "✅ Code formatting is correct with clang-format-${{ matrix.clang-version }}"
+          echo "✅ Code formatting is already correct"
         fi
 
   verify-release-binaries:
