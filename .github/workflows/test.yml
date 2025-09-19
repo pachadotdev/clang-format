@@ -49,6 +49,6 @@ jobs:
         uses: ./
         with:
           version: '14'
-          paths: 'test/'
+          files: 'test/*.cpp test/*.h'
           auto-commit: false
           fail-on-diff: false
