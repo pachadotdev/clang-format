@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ main, master, develop ]
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   auto-format:
     runs-on: ubuntu-latest
@@ -15,6 +19,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0
+        persist-credentials: true
     
     - name: Download clang-format binaries
       run: |

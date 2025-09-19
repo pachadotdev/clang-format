@@ -7,13 +7,13 @@ class Example {
     Example(int value) : m_value(value) {}
 
     void processData(const std::vector<int> &data) {
-    for (auto item : data) {
-    if (item > m_value) {
-    std::cout << "Item " << item << " is greater than " << m_value << std::endl;
-    } else {
-    std::cout << "Item " << item << " is not greater" << std::endl;
-    }
-    }
+        for (auto item : data) {
+            if (item > m_value) {
+                std::cout << "Item " << item << " is greater than " << m_value << std::endl;
+            } else {
+                std::cout << "Item " << item << " is not greater" << std::endl;
+            }
+        }
     }
 
   private:
