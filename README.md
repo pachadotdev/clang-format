@@ -147,6 +147,7 @@ Available targets:
   clang17       - Build clang-format-17
   clang18       - Build clang-format-18
   clang19       - Build clang-format-19
+  clang20       - Build clang-format-20
   clean         - Clean all build artifacts
 
 Usage examples:
@@ -156,11 +157,11 @@ Usage examples:
 
 Build features:
   - Auto-installs dependencies (cmake, ninja, git, python3)
-  - Auto-installs GCC 14 for LLVM 11-14 (better compatibility)
+  - Auto-installs GCC 14 for LLVM 11-16 (better compatibility)
   - Builds only clang-format tool (not entire clang)
   - Minimal LLVM targets and disabled tests/docs for faster builds
   - Uses all CPU cores: 8
-  - C++17 for older LLVM versions (11-16), C++20 for newer (17+)
+  - C++14 for older LLVM versions (11-16) and C++20 for newer (17+)
 ```
 
 ## Supported Linux Distributions

@@ -3,7 +3,7 @@
 # Works on any Linux distribution with basic build tools
 
 # Configuration
-LLVM_VERSIONS = 11 12 13 14 15 16 17 18 19
+LLVM_VERSIONS = 11 12 13 14 15 16 17 18 19 20
 BUILD_DIR = build
 BIN_DIR = bin
 INSTALL_PREFIX = $(PWD)/$(BIN_DIR)
@@ -14,7 +14,7 @@ JOBS = $(shell nproc)
 MINIMAL_BUILD = 1
 
 # Default target
-.PHONY: all clean help clang11 clang12 clang13 clang14 clang15 clang16 clang17 clang18 clang19 status
+.PHONY: all clean help clang11 clang12 clang13 clang14 clang15 clang16 clang17 clang18 clang19 clang20 status
 
 all: $(addprefix $(BIN_DIR)/clang-format-, $(LLVM_VERSIONS))
 
@@ -32,6 +32,7 @@ help:
 	@echo "  clang17       - Build clang-format-17"
 	@echo "  clang18       - Build clang-format-18"
 	@echo "  clang19       - Build clang-format-19"
+	@echo "  clang20       - Build clang-format-20"
 	@echo "  clean         - Clean all build artifacts"
 	@echo ""
 	@echo "Usage examples:"
@@ -41,11 +42,11 @@ help:
 	@echo ""
 	@echo "Build features:"
 	@echo "  - Auto-installs dependencies (cmake, ninja, git, python3)"
-	@echo "  - Auto-installs GCC 14 for LLVM 11-14 (better compatibility)"
+	@echo "  - Auto-installs GCC 14 for LLVM 11-16 (better compatibility)"
 	@echo "  - Builds only clang-format tool (not entire clang)"
 	@echo "  - Minimal LLVM targets and disabled tests/docs for faster builds"
 	@echo "  - Uses all CPU cores: $(JOBS)"
-	@echo "  - C++17 for older LLVM versions (11-16), C++20 for newer (17+)"
+	@echo "  - C++14 for older LLVM versions (11-16) and C++20 for newer (17+)"
 
 # Internal targets for dependency installation
 install-build-deps-only:
@@ -139,13 +140,19 @@ clang19:
 	@$(MAKE) $(BIN_DIR)/clang-format-19
 	@echo "✅ clang-format-19 build completed"
 
+clang20:
+	@echo "🔨 Building clang-format-20 (auto-installing dependencies)..."
+	@$(MAKE) install-build-deps-only
+	@$(MAKE) $(BIN_DIR)/clang-format-20
+	@echo "✅ clang-format-20 build completed"
+
 $(BIN_DIR)/clang-format-%: | $(BIN_DIR)
 	@echo "Building clang-format-$*..."
 	@mkdir -p $(BUILD_DIR)/llvm-$*
 	@if [ ! -d "$(BUILD_DIR)/llvm-project-$*" ]; then \
 		echo "Downloading LLVM $*..."; \
 		cd $(BUILD_DIR) && \
-		if [ "$*" = "18" ] || [ "$*" = "19" ]; then \
+		if [ "$*" = "18" ] || [ "$*" = "19" ] || [ "$*" = "20" ]; then \
 		  git clone --depth 1 --branch main https://github.com/llvm/llvm-project.git llvm-project-$*; \
 		else \
 		  ( \
