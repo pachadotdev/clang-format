@@ -8,12 +8,13 @@ A fast, portable solution for building and using multiple versions of clang-form
 
 ## Features
 
-- [x] Ready-made `clang-format` that lints cpp/hpp files using Clang style versions 11 to 20
+- [x] Ready-made `clang-format` that lints cpp/hpp files using Clang style versions 11 to 21
 - [x] Works on any Linux distribution (Ubuntu, CentOS, Fedora, Arch, openSUSE)
 - [x] Much faster than Docker-based solutions
 - [x] GitHub Actions integration
 - [x] Automatic dependency detection and installation
 - [x] Tractable build process with available source code
+- [x] Exclude files by regex pattern (e.g. vendored single-header libraries like `nlohmann/json.hpp`)
 
 ## Quick Start
 
@@ -39,11 +40,30 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - uses: pachadotdev/clang-format@v1
+      - uses: pachadotdev/clang-format@v1.1
         with:
           version: '18'
           auto-commit: true
           commit-message: 'style: auto-format C++ code'
+```
+
+### Excluding vendored / generated files
+
+Use the `exclude` input with a regular expression to skip files that should not be formatted, such as single-header libraries:
+
+```yaml
+      - uses: pachadotdev/clang-format@v1.1
+        with:
+          version: '18'
+          exclude: 'json\.hpp$'
+          auto-commit: true
+          commit-message: 'style: auto-format C++ code'
+```
+
+Multiple patterns can be combined with `|`:
+
+```yaml
+          exclude: 'json\.hpp$|vendor/|third.party/'
 ```
 
 ### Integration with R package workflows example
@@ -67,9 +87,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - uses: pachadotdev/clang-format@v1
+      - uses: pachadotdev/clang-format@v1.1
         with:
-          version: '18'
+          version: '21'
           files: 'src/*.cpp src/*.h inst/include/*.h'
           auto-commit: true
           commit-message: 'style: format C++ code in R package'
@@ -148,6 +168,7 @@ Available targets:
   clang18       - Build clang-format-18
   clang19       - Build clang-format-19
   clang20       - Build clang-format-20
+  clang21       - Build clang-format-21
   clean         - Clean all build artifacts
 
 Usage examples:

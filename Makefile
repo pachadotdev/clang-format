@@ -3,7 +3,7 @@
 # Works on any Linux distribution with basic build tools
 
 # Configuration
-LLVM_VERSIONS = 11 12 13 14 15 16 17 18 19 20
+LLVM_VERSIONS = 11 12 13 14 15 16 17 18 19 20 21
 BUILD_DIR = build
 BIN_DIR = bin
 INSTALL_PREFIX = $(PWD)/$(BIN_DIR)
@@ -33,6 +33,7 @@ help:
 	@echo "  clang18       - Build clang-format-18"
 	@echo "  clang19       - Build clang-format-19"
 	@echo "  clang20       - Build clang-format-20"
+	@echo "  clang21       - Build clang-format-21"
 	@echo "  clean         - Clean all build artifacts"
 	@echo ""
 	@echo "Usage examples:"
@@ -146,13 +147,20 @@ clang20:
 	@$(MAKE) $(BIN_DIR)/clang-format-20
 	@echo "✅ clang-format-20 build completed"
 
+clang21:
+	@echo "🔨 Building clang-format-21 (auto-installing dependencies)..."
+	@$(MAKE) install-build-deps-only
+	@$(MAKE) $(BIN_DIR)/clang-format-21
+	@echo "✅ clang-format-21 build completed"
+
 $(BIN_DIR)/clang-format-%: | $(BIN_DIR)
 	@echo "Building clang-format-$*..."
 	@mkdir -p $(BUILD_DIR)/llvm-$*
 	@if [ ! -d "$(BUILD_DIR)/llvm-project-$*" ]; then \
 		echo "Downloading LLVM $*..."; \
 		cd $(BUILD_DIR) && \
-		if [ "$*" = "18" ] || [ "$*" = "19" ] || [ "$*" = "20" ]; then \
+		if [ "$*" = "18" ] || [ "$*" = "19" ] || [ "$*" = "20" ] || [ "$*" = "21" ]; then \
+		  git clone --depth 1 --branch release/$*.x https://github.com/llvm/llvm-project.git llvm-project-$* 2>/dev/null || \
 		  git clone --depth 1 --branch main https://github.com/llvm/llvm-project.git llvm-project-$*; \
 		else \
 		  ( \

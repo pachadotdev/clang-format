@@ -57,7 +57,7 @@ echo "  clang-format 14 example.cpp           # Format with clang-format-14"
 echo "  clang-format                          # Format all C/C++ files in directory"
 echo ""
 echo "Available versions:"
-for version in {11..19}; do
+for version in {11..21}; do
     if command -v "clang-format-$version" &> /dev/null; then
         echo "  ✓ clang-format-$version"
     fi

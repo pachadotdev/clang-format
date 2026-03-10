@@ -8,9 +8,9 @@ branding:
 
 inputs:
   version:
-    description: 'Clang-format version to use (11-19)'
+    description: 'Clang-format version to use (11-21)'
     required: false
-    default: '19'
+    default: '21'
   
   files:
     description: 'Files or patterns to format (default: all C/C++ files in repository)'
@@ -31,6 +31,11 @@ inputs:
     description: 'Fail the action if formatting changes are needed (useful for PR checks)'
     required: false
     default: 'false'
+  
+  exclude:
+    description: 'Regex pattern(s) for files to exclude from formatting (e.g. "json\.hpp$" or "vendor/|third.party/")'
+    required: false
+    default: ''
   
   working-directory:
     description: 'Working directory to run clang-format in'
@@ -120,6 +125,22 @@ runs:
         else
           echo "Finding all C/C++ files..."
           FILES=$(find . -type f \( -name '*.cpp' -o -name '*.hpp' -o -name '*.c' -o -name '*.h' -o -name '*.cc' -o -name '*.cxx' -o -name '*.hxx' \) 2>/dev/null)
+        fi
+        
+        # Apply exclude regex if provided
+        if [ -n "${{ inputs.exclude }}" ]; then
+          EXCLUDE_PATTERN="${{ inputs.exclude }}"
+          echo "Excluding files matching regex: $EXCLUDE_PATTERN"
+          FILTERED_FILES=""
+          while IFS= read -r file; do
+            if echo "$file" | grep -qE "$EXCLUDE_PATTERN"; then
+              echo "  ⏭️  Excluded: $file"
+            else
+              FILTERED_FILES="$FILTERED_FILES
+        $file"
+            fi
+          done <<< "$FILES"
+          FILES="$(echo "$FILTERED_FILES" | sed '/^$/d')"
         fi
         
         if [ -z "$FILES" ]; then
