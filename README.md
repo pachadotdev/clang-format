@@ -40,7 +40,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - uses: pachadotdev/clang-format@v1.1
+      - uses: pachadotdev/clang-format@v1
         with:
           version: '18'
           auto-commit: true
@@ -52,7 +52,7 @@ jobs:
 Use the `exclude` input with a regular expression to skip files that should not be formatted, such as single-header libraries:
 
 ```yaml
-      - uses: pachadotdev/clang-format@v1.1
+      - uses: pachadotdev/clang-format@v1
         with:
           version: '18'
           exclude: 'json\.hpp$'
@@ -87,7 +87,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
-      - uses: pachadotdev/clang-format@v1.1
+      - uses: pachadotdev/clang-format@v1
         with:
           version: '21'
           files: 'src/*.cpp src/*.h inst/include/*.h'
