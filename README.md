@@ -83,7 +83,8 @@ on:
 jobs:
   R-CMD-check:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write
     steps:
       # Format C++ code first
       - uses: actions/checkout@v4
