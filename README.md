@@ -39,6 +39,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}  # Ensures proper branch checkout for PRs
       
       - uses: pachadotdev/clang-format@v1.1
         with:
@@ -46,6 +47,8 @@ jobs:
           auto-commit: true
           commit-message: 'style: auto-format C++ code'
 ```
+
+**Note for Pull Requests**: The `ref: ${{ github.head_ref }}` parameter in the checkout step is important when using `auto-commit: true` with pull requests. Without it, the action may checkout code in a detached HEAD state, preventing commits from being pushed properly.
 
 ### Excluding vendored / generated files
 
@@ -86,6 +89,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.head_ref }}  # Important for pull requests
       
       - uses: pachadotdev/clang-format@v1.1
         with:

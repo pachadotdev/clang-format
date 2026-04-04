@@ -217,6 +217,31 @@ runs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action (clang-format)"
         
+        # Determine the branch to push to
+        if [ -n "${{ github.head_ref }}" ]; then
+          # Pull request - use the head branch
+          BRANCH="${{ github.head_ref }}"
+          echo "🔀 Detected pull request, using branch: $BRANCH"
+        elif [ -n "${{ github.ref_name }}" ]; then
+          # Direct push - use the ref name
+          BRANCH="${{ github.ref_name }}"
+          echo "📌 Using branch: $BRANCH"
+        else
+          echo "❌ Could not determine branch name"
+          exit 1
+        fi
+        
+        # Ensure we're on the correct branch (handle detached HEAD)
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        if [ "$CURRENT_BRANCH" = "HEAD" ]; then
+          echo "⚠️  Currently in detached HEAD state, checking out $BRANCH"
+          git fetch origin "$BRANCH"
+          git checkout "$BRANCH" || {
+            echo "❌ Failed to checkout branch $BRANCH"
+            exit 1
+          }
+        fi
+        
         # Add and commit changes
         git add -A
         git commit -m "${{ inputs.commit-message }}" || {
@@ -225,14 +250,14 @@ runs:
         }
         
         # Push changes
-        git push || {
+        git push origin "$BRANCH" || {
           echo "❌ Failed to push changes"
           echo "This might happen if the repository requires additional permissions"
           echo "Make sure to use a token with write permissions in actions/checkout"
           exit 1
         }
         
-        echo "✅ Changes committed and pushed successfully"
+        echo "✅ Changes committed and pushed successfully to $BRANCH"
 
     - name: Check for required changes
       if: inputs.fail-on-diff == 'true' && steps.format.outputs.has-changes == 'true'
